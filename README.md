@@ -34,8 +34,8 @@ or with a specific keyboard ID to block
 - It needs to run in the backgrond
 - It only runs on Mac
 - It needs admin priviledges
-- It only works for my specific problem
-- The Keyboard IDs are hardcoded, so they might fail on Boot
+- It only works for my specific problem and doesn't really fix it
+- The Keyboard IDs are (semi-)hardcoded, so they might fail on Boot
 - It doesn't work on the login screen
 - Some other programs that also use a keyboard hook might not realize that the event was eaten
 
