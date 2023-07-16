@@ -91,6 +91,21 @@ int main(int argc, char *argv[])
         }
     }
 
+    // Search for an argument that is parsable to an int
+    for (int i = 0; i < argc; i++)
+    {
+        uintmax_t num = strtoumax(argv[i], NULL, 10);
+        if (num != 0 && num != UINTMAX_MAX)
+        {
+            EXTERNAL_KEYBOARD = num;
+            printf("Using keyboard ID: %d\n", EXTERNAL_KEYBOARD);
+            break;
+        }
+    } 
+    if (EXTERNAL_KEYBOARD == 44) {
+        printf("Using default keyboard ID: %d\n", EXTERNAL_KEYBOARD);
+    }
+
     // Create an event tap. We are interested in key presses.
     eventMask = ((1 << kCGEventKeyDown) | (1 << kCGEventKeyUp));
     eventTap = CGEventTapCreate(kCGSessionEventTap, kCGHeadInsertEventTap, 0,
