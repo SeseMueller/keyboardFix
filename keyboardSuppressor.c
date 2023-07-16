@@ -3,6 +3,8 @@
 // Note: The compiler will need to be told to use the apllication services framework. The command is:
 // gcc -o keyboardSuppressor keyboardSuppressor.c -framework ApplicationServices
 
+bool verbose = false;
+
 int keyboard = 0;
 
 int EXTERNAL_KEYBOARD = 44; // my external (USB) keyboard has a code of 44, my integrated (laptop) keyboard has a code of 92.
@@ -38,8 +40,10 @@ myCGEventCallback(CGEventTapProxy proxy, CGEventType type,
 
     // Debugging time!
 
-    printf("Gotten Keyboard: %d ", keyboard);
-    printf("Gotten Keycode: %d\n", keycode);
+    if (verbose){
+        printf("Gotten Keyboard: %d ", keyboard);
+        printf("Gotten Keycode: %d\n", keycode);
+    }
 
     // Debugging gave the info:
     // All keyboard inputs that are via the 9 key are of keycode 25.
@@ -49,7 +53,9 @@ myCGEventCallback(CGEventTapProxy proxy, CGEventType type,
 
     if (type == kCGEventKeyDown && keycode == 25 && keyboard == EXTERNAL_KEYBOARD)
     {
-        printf("Ignoring keypress\n");
+        if (verbose) {
+            printf("Ignoring keypress\n");
+        }
         // Set the modified keycode field in the event.
 
         // Testing: set it to 1, if it would be a 9
@@ -75,6 +81,15 @@ int main(int argc, char *argv[])
     CFMachPortRef eventTap;
     CGEventMask eventMask;
     CFRunLoopSourceRef runLoopSource;
+
+    // Search for an argument that is "-v" or "--verbose"
+    for (int i = 0; i < argc; i++)
+    {
+        if (strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--verbose") == 0)
+        {
+            verbose = true;
+        }
+    }
 
     // Create an event tap. We are interested in key presses.
     eventMask = ((1 << kCGEventKeyDown) | (1 << kCGEventKeyUp));
