@@ -9,6 +9,24 @@ It listens to all keyDown events (needing privileges) and eats it, if it is a 9 
 
 It is loosely based on this: https://github.com/mjolnirapp/mjolnir/issues/9 , so thanks for that!
 
+Compile it with 
+```shell
+gcc -o keyboardSuppressor keyboardSuppressor.c -framework ApplicationServices
+```
+
+Run it with 
+```shell
+./keyboardSuppressor
+```
+or in verbose mode
+```shell
+./keyboardSuppressor -v
+```
+or with a specific keyboard ID to block
+```shell
+./keyboardSuppressor id
+```
+
 ### Pros
 - I can use my wired keyboard again without much issues!
   
