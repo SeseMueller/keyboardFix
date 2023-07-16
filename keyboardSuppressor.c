@@ -1,7 +1,7 @@
 #include <ApplicationServices/ApplicationServices.h>
 
 // Note: The compiler will need to be told to use the apllication services framework. The command is:
-// gcc -o keyboardSupressor keyboardSuppressor.c -framework ApplicationServices
+// gcc -o keyboardSuppressor keyboardSuppressor.c -framework ApplicationServices
 
 int keyboard = 0;
 
