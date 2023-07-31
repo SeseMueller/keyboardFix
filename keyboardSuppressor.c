@@ -1,11 +1,13 @@
 #include <ApplicationServices/ApplicationServices.h>
 
-// Note: The compiler will need to be told to use the apllication services framework. The command is:
+// Note: The compiler will need to be told to use the application services framework. The command is:
 // gcc -o keyboardSuppressor keyboardSuppressor.c -framework ApplicationServices
 
 bool verbose = false;
 
 int keyboard = 0;
+
+uint64_t lastNumberKeyup = 0;
 
 int EXTERNAL_KEYBOARD = 44; // my external (USB) keyboard has a code of 44, my integrated (laptop) keyboard has a code of 92.
 int INTEGRATED_KEYBOARD = 92; // Note that this might change on every boot, so this might need to be corrected on every boot.
@@ -42,32 +44,57 @@ myCGEventCallback(CGEventTapProxy proxy, CGEventType type,
 
     if (verbose){
         printf("Gotten Keyboard: %d ", keyboard);
-        printf("Gotten Keycode: %d\n", keycode);
+        printf("Repetition?: %d ", CGEventGetIntegerValueField(event, kCGKeyboardEventAutorepeat));
+        printf("Gotten Keycode: %d ", keycode);
+        printf("Keyup?: %d ", type == kCGEventKeyUp);
+        printf("Precise time: %lld ", CGEventGetTimestamp(event));
+        printf("\n");
     }
 
     // Debugging gave the info:
     // All keyboard inputs that are via the 9 key are of keycode 25.
 
-    // So, if the event is a keydown event, and the keycode is 25, AND the keyboard is the external one,
-    // we want to ignore it.
+    // The nines the keyboard send are a consequence that the nine key is "held down" when a number key is pressed.
+    // so first nine comes from this error and the others are repetitions. 
+    // All repetitions can be ignored and all keydown that are within about five milliseconds after a keyup of ANOTHER number key can be ignored.
+
+    // For that, we need to keep track of the time of when the last number keyup was sent.
+    if (type == kCGEventKeyUp && keyboard == EXTERNAL_KEYBOARD) {
+        if (keycode == 18 || // 1
+            keycode == 19 || // 2
+            keycode == 20 || // 3
+            keycode == 21 || // 4
+            keycode == 23 || // 5???
+            keycode == 22 || // 6
+            keycode == 26 || // 7????
+            keycode == 28    // 8
+        ) {
+            lastNumberKeyup = CGEventGetTimestamp(event);
+        }
+    }
 
     if (type == kCGEventKeyDown && keycode == 25 && keyboard == EXTERNAL_KEYBOARD)
     {
-        if (verbose) {
-            printf("Ignoring keypress\n");
+        uint64_t time = CGEventGetTimestamp(event);
+        printf("Difference: %lld\n", time - lastNumberKeyup);
+        if ((time - lastNumberKeyup < 5000000) || CGEventGetIntegerValueField(event, kCGKeyboardEventAutorepeat) == 1) { //5 milliseconds or autorepeat
+
+            if (verbose) {
+                printf("Ignoring keypress\n");
+            }
+            // Set the modified keycode field in the event.
+
+            // Testing: set it to 1, if it would be a 9
+            // keycode = (CGKeyCode)18;
+            // CGEventSetIntegerValueField(event, kCGKeyboardEventKeycode, (int64_t)keycode); // Not a very good idea, but lets try it. (Backups are made)
+            // Yay that worked! Now, we have to EAT the input, so that it doesn't get sent to the system.
+
+            // Maybe returning NULL will do the trick?
+            return NULL;
+            // Yay! That worked! And as planned, the integrated keyboard is not affected by this.
+            // The keyup event is irrelevant, we can ignore it. (I think)
+            // Also notice that the keyboard IDs may change, so this might need to be corrected on every boot.
         }
-        // Set the modified keycode field in the event.
-
-        // Testing: set it to 1, if it would be a 9
-        // keycode = (CGKeyCode)18;
-        // CGEventSetIntegerValueField(event, kCGKeyboardEventKeycode, (int64_t)keycode); // Not a very good idea, but lets try it. (Backups are made)
-        // Yay that worked! Now, we have to EAT the input, so that it doesn't get sent to the system.
-
-        // Maybe returning NULL will do the trick?
-        return NULL;
-        // Yay! That worked! And as planned, the integrated keyboard is not affected by this.
-        // The keyup event is irrelevant, we can ignore it. (I think)
-        // Also notice that the keyboard IDs may change, so this might need to be corrected on every boot.
 
     }
 
@@ -105,6 +132,11 @@ int main(int argc, char *argv[])
     if (EXTERNAL_KEYBOARD == 44) {
         printf("Using default keyboard ID: %d\n", EXTERNAL_KEYBOARD);
     }
+
+
+
+
+
 
     // Create an event tap. We are interested in key presses.
     eventMask = ((1 << kCGEventKeyDown) | (1 << kCGEventKeyUp));
