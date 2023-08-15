@@ -41,6 +41,8 @@ or with a specific keyboard ID to block
 
 It also is a software solution to a hardware problem, which should never, ever be done in a more or less serious context. 
 
+Aditionally, hardware problems are much more unpredictable than software problems. In this case for example, the best fix was to unplug the keyboard for about a week and have the issue magically resolve itself. I'm only a little mad.
+
 ## Disclaimer
 Do not use this. It's probably easier to just buy a new keyboard. 
 
